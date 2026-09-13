@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudentSpend — Track every rupee</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body data-theme="light">
+
+<!-- Mobile top bar -->
+<header class="mobile-topbar">
+  <button class="icon-btn" id="menuToggle" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+  <div class="mobile-brand"><span class="brand-mark">₹</span>StudentSpend</div>
+  <button class="icon-btn" id="mobileThemeToggle" aria-label="Toggle theme"><i class="fa-solid fa-moon"></i></button>
+</header>
+
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-mark">₹</span>
+      <div>
+        <div class="brand-name">StudentSpend</div>
+        <div class="brand-sub">campus money, sorted</div>
+      </div>
+    </div>
+
+    <nav class="nav-list">
+      <button class="nav-item active" data-page="dashboard"><i class="fa-solid fa-grip"></i><span>Dashboard</span></button>
+      <button class="nav-item" data-page="expenses"><i class="fa-solid fa-receipt"></i><span>Expenses</span></button>
+      <button class="nav-item" data-page="budget"><i class="fa-solid fa-wallet"></i><span>Budget</span></button>
+      <button class="nav-item" data-page="analytics"><i class="fa-solid fa-chart-simple"></i><span>Analytics</span></button>
+      <button class="nav-item" data-page="savings"><i class="fa-solid fa-piggy-bank"></i><span>Savings Goals</span></button>
+      <button class="nav-item" data-page="settings"><i class="fa-solid fa-sliders"></i><span>Settings</span></button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="ghost-btn" id="loadDemoBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Load demo data</button>
+      <button class="theme-switch" id="themeToggle">
+        <i class="fa-solid fa-moon"></i>
+        <span>Dark mode</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Main content -->
+  <main class="main-content">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="page active" id="page-dashboard">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow" id="dashGreeting">Welcome back</p>
+          <h1 id="dashUserName">Hey there</h1>
+        </div>
+        <button class="primary-btn big" id="addExpenseBtnDash"><i class="fa-solid fa-plus"></i> Add Expense</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon budget"><i class="fa-solid fa-vault"></i></div>
+          <p class="stat-label">Monthly Budget</p>
+          <p class="stat-value" id="statBudget">₹0</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon spent"><i class="fa-solid fa-fire"></i></div>
+          <p class="stat-label">Total Spent</p>
+          <p class="stat-value" id="statSpent">₹0</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon remaining"><i class="fa-solid fa-scale-balanced"></i></div>
+          <p class="stat-label">Remaining</p>
+          <p class="stat-value" id="statRemaining">₹0</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon today"><i class="fa-solid fa-sun"></i></div>
+          <p class="stat-label">Today's Spending</p>
+          <p class="stat-value" id="statToday">₹0</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon count"><i class="fa-solid fa-layer-group"></i></div>
+          <p class="stat-label">Transactions</p>
+          <p class="stat-value" id="statCount">0</p>
+        </div>
+      </div>
+
+      <div class="progress-card">
+        <div class="progress-card-head">
+          <span>Budget used this month</span>
+          <span id="budgetProgressLabel">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="dashProgressFill"></div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Spending by category</h3>
+          </div>
+          <div class="chart-wrap small"><canvas id="dashCategoryChart"></canvas></div>
+          <p class="empty-note" id="dashCategoryEmpty">Add an expense to see your breakdown.</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Last 7 days</h3>
+          </div>
+          <div class="chart-wrap small"><canvas id="dashDailyChart"></canvas></div>
+        </div>
+
+        <div class="panel span-2">
+          <div class="panel-head">
+            <h3>Recent transactions</h3>
+            <button class="text-link" data-goto="expenses">View all</button>
+          </div>
+          <div id="recentTransactionsList" class="tx-list"></div>
+          <p class="empty-note" id="recentEmptyNote">No expenses yet — add your first one above.</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Smart insights</h3></div>
+          <ul class="insight-list" id="insightList"></ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Savings goals</h3>
+            <button class="text-link" data-goto="savings">Manage</button>
+          </div>
+          <div id="dashSavingsList" class="goal-mini-list"></div>
+          <p class="empty-note" id="dashSavingsEmpty">No goals yet. Start one from Savings Goals.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EXPENSES ============ -->
+    <section class="page" id="page-expenses">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">All transactions</p>
+          <h1>Expenses</h1>
+        </div>
+        <button class="primary-btn big" id="addExpenseBtnList"><i class="fa-solid fa-plus"></i> Add Expense</button>
+      </div>
+
+      <div class="panel">
+        <div class="filter-bar">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Search description..." />
+          </div>
+          <select id="filterCategory">
+            <option value="all">All categories</option>
+          </select>
+          <input type="date" id="filterDate" />
+          <select id="sortSelect">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="highest">Highest amount</option>
+            <option value="lowest">Lowest amount</option>
+          </select>
+          <button class="ghost-btn" id="clearFiltersBtn"><i class="fa-solid fa-rotate-left"></i> Clear</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Payment</th>
+                <th class="right">Amount</th>
+                <th class="right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="expenseTableBody"></tbody>
+          </table>
+        </div>
+        <p class="empty-note" id="expenseTableEmpty">No expenses match your filters yet.</p>
+      </div>
+    </section>
+
+    <!-- ============ BUDGET ============ -->
+    <section class="page" id="page-budget">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">Plan ahead</p>
+          <h1>Budget</h1>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="panel">
+          <div class="panel-head"><h3>Monthly budget</h3></div>
+          <form id="monthlyBudgetForm" class="inline-form">
+            <div class="field">
+              <label for="monthlyBudgetInput">Set your monthly budget</label>
+              <div class="amount-input">
+                <span id="budgetCurrencyPrefix">₹</span>
+                <input type="number" id="monthlyBudgetInput" min="0" step="1" required />
+              </div>
+            </div>
+            <button type="submit" class="primary-btn">Save budget</button>
+          </form>
+          <div class="progress-card no-shadow">
+            <div class="progress-card-head">
+              <span id="budgetPageSpentLabel">₹0 of ₹0 used</span>
+              <span id="budgetPagePercentLabel">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="budgetPageFill"></div>
+            </div>
+            <p class="budget-warning" id="budgetPageWarning"></p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Add category budget</h3></div>
+          <form id="categoryBudgetForm" class="inline-form">
+            <div class="field">
+              <label for="catBudgetCategory">Category</label>
+              <select id="catBudgetCategory" required></select>
+            </div>
+            <div class="field">
+              <label for="catBudgetAmount">Budget amount</label>
+              <div class="amount-input">
+                <span>₹</span>
+                <input type="number" id="catBudgetAmount" min="0" step="1" required />
+              </div>
+            </div>
+            <button type="submit" class="primary-btn">Save category budget</button>
+          </form>
+        </div>
+
+        <div class="panel span-2">
+          <div class="panel-head"><h3>Category budgets</h3></div>
+          <div id="categoryBudgetList" class="cat-budget-list"></div>
+          <p class="empty-note" id="categoryBudgetEmpty">No category budgets set yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ANALYTICS ============ -->
+    <section class="page" id="page-analytics">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">Where it goes</p>
+          <h1>Analytics</h1>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="panel">
+          <div class="panel-head"><h3>Spending by category</h3></div>
+          <div class="chart-wrap"><canvas id="anCategoryChart"></canvas></div>
+          <p class="empty-note" id="anCategoryEmpty">Add expenses to unlock this chart.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Daily spending (30 days)</h3></div>
+          <div class="chart-wrap"><canvas id="anDailyChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Weekly spending (8 weeks)</h3></div>
+          <div class="chart-wrap"><canvas id="anWeeklyChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Monthly summary (6 months)</h3></div>
+          <div class="chart-wrap"><canvas id="anMonthlyChart"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SAVINGS GOALS ============ -->
+    <section class="page" id="page-savings">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">Future you says thanks</p>
+          <h1>Savings Goals</h1>
+        </div>
+        <button class="primary-btn big" id="addGoalBtn"><i class="fa-solid fa-plus"></i> New Goal</button>
+      </div>
+
+      <div class="goal-grid" id="goalGrid"></div>
+      <p class="empty-note" id="goalEmptyNote">No savings goals yet. Start one to see progress here.</p>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="page" id="page-settings">
+      <div class="page-head">
+        <div>
+          <p class="eyebrow">Make it yours</p>
+          <h1>Settings</h1>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="panel">
+          <div class="panel-head"><h3>Profile</h3></div>
+          <form id="profileForm" class="inline-form">
+            <div class="field">
+              <label for="settingsName">Student name</label>
+              <input type="text" id="settingsName" placeholder="Your name" />
+            </div>
+            <div class="field">
+              <label for="settingsBudget">Monthly budget</label>
+              <div class="amount-input">
+                <span>₹</span>
+                <input type="number" id="settingsBudget" min="0" step="1" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="settingsCurrency">Currency</label>
+              <select id="settingsCurrency">
+                <option value="INR">₹ Indian Rupee (INR)</option>
+                <option value="USD">$ US Dollar (USD)</option>
+                <option value="EUR">€ Euro (EUR)</option>
+                <option value="GBP">£ British Pound (GBP)</option>
+              </select>
+            </div>
+            <button type="submit" class="primary-btn">Save settings</button>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Appearance</h3></div>
+          <div class="setting-row">
+            <div>
+              <p class="setting-title">Dark mode</p>
+              <p class="setting-desc">Easier on the eyes for late-night budgeting.</p>
+            </div>
+            <button class="theme-switch" id="settingsThemeToggle">
+              <i class="fa-solid fa-moon"></i>
+              <span>Toggle</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel span-2 danger-panel">
+          <div class="panel-head"><h3>Danger zone</h3></div>
+          <div class="setting-row">
+            <div>
+              <p class="setting-title">Clear all expenses</p>
+              <p class="setting-desc">Removes every transaction. Budgets and goals stay.</p>
+            </div>
+            <button class="danger-btn" id="clearExpensesBtn">Clear expenses</button>
+          </div>
+          <div class="setting-row">
+            <div>
+              <p class="setting-title">Reset application</p>
+              <p class="setting-desc">Wipes everything — expenses, budgets, goals and settings.</p>
+            </div>
+            <button class="danger-btn" id="resetAppBtn">Reset app</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ ADD/EDIT EXPENSE MODAL ============ -->
+<div class="modal-overlay" id="expenseModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="expenseModalTitle">Add Expense</h3>
+      <button class="icon-btn" id="closeExpenseModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="expenseForm">
+      <input type="hidden" id="expenseId" />
+      <div class="field">
+        <label for="expenseAmount">Amount</label>
+        <div class="amount-input">
+          <span id="expenseCurrencyPrefix">₹</span>
+          <input type="number" id="expenseAmount" min="0" step="0.01" placeholder="0.00" required />
+        </div>
+      </div>
+      <div class="field">
+        <label for="expenseDescription">Description</label>
+        <input type="text" id="expenseDescription" placeholder="e.g. College canteen lunch" required />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="expenseCategory">Category</label>
+          <select id="expenseCategory" required></select>
+        </div>
+        <div class="field">
+          <label for="expenseDate">Date</label>
+          <input type="date" id="expenseDate" required />
+        </div>
+      </div>
+      <div class="field">
+        <label for="expensePayment">Payment method</label>
+        <select id="expensePayment" required>
+          <option value="Cash">Cash</option>
+          <option value="UPI">UPI</option>
+          <option value="Debit Card">Debit Card</option>
+          <option value="Credit Card">Credit Card</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="ghost-btn" id="cancelExpenseBtn">Cancel</button>
+        <button type="submit" class="primary-btn" id="expenseSubmitBtn">Add Expense</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ ADD/EDIT GOAL MODAL ============ -->
+<div class="modal-overlay" id="goalModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="goalModalTitle">New Savings Goal</h3>
+      <button class="icon-btn" id="closeGoalModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="goalForm">
+      <input type="hidden" id="goalId" />
+      <div class="field">
+        <label for="goalName">Goal name</label>
+        <input type="text" id="goalName" placeholder="e.g. New headphones" required />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="goalTarget">Target amount</label>
+          <div class="amount-input"><span>₹</span><input type="number" id="goalTarget" min="1" step="1" required /></div>
+        </div>
+        <div class="field">
+          <label for="goalCurrent">Already saved</label>
+          <div class="amount-input"><span>₹</span><input type="number" id="goalCurrent" min="0" step="1" value="0" required /></div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="goalDate">Target date</label>
+        <input type="date" id="goalDate" required />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="ghost-btn" id="cancelGoalBtn">Cancel</button>
+        <button type="submit" class="primary-btn" id="goalSubmitBtn">Save Goal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ ADD FUNDS TO GOAL MODAL ============ -->
+<div class="modal-overlay" id="fundsModalOverlay">
+  <div class="modal small">
+    <div class="modal-head">
+      <h3>Add to savings</h3>
+      <button class="icon-btn" id="closeFundsModal"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="fundsForm">
+      <input type="hidden" id="fundsGoalId" />
+      <div class="field">
+        <label for="fundsAmount">Amount to add</label>
+        <div class="amount-input"><span>₹</span><input type="number" id="fundsAmount" min="1" step="1" required /></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="ghost-btn" id="cancelFundsBtn">Cancel</button>
+        <button type="submit" class="primary-btn">Add funds</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
